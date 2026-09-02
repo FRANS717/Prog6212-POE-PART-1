@@ -1,6 +1,6 @@
 # Prog6212-POE-PART-1
 
-System Overview
+# System Overview
 RaceDay is an event management platform for South African road running, walking, and cycling events. It connects Event Organisers with Participants.
 Organisers can create events, manage categories, view enrolments, and capture results.
 Participants can browse events, enrol, view their enrolments, and track their results.
@@ -35,4 +35,4 @@ Audio: Student's own voice (no AI voices)
 I declare that this work is my own original work and all sources have been properly referenced.
 Name: Brain Frans Mashabela
 Student Number:  ST10476451
-Date: 
+Date: 02/09/2026
