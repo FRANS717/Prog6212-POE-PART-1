@@ -1,0 +1,86 @@
+name: RaceDay - Validate Planning Documents
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-planning:
+    runs-on: ubuntu-latest
+    name: Validate Planning Documents
+    
+    steps:
+    - name:  Checkout Repository
+      uses: actions/checkout@v3
+    
+    - name:  Check docs folder exists
+      run: |
+        if [ ! -d "docs" ]; then
+          echo "❌ Error: docs folder not found!"
+          exit 1
+        fi
+        echo "✅ docs folder exists"
+    
+    - name: Check ERD exists
+      run: |
+        if ! find docs -type f \( -name "*.png" -o -name "*.pdf" \) | grep -q .; then
+          echo "❌ Error: No ERD image found in docs folder!"
+          echo "Required: docs/erd/*.png or docs/erd/*.pdf"
+          exit 1
+        fi
+        echo "✅ ERD image found"
+    
+    - name:  Check Endpoint Plan exists
+      run: |
+        if ! find docs -type f \( -name "*.md" -o -name "*.pdf" \) | grep -q .; then
+          echo "❌ Error: No endpoint plan found in docs folder!"
+          echo "Required: docs/endpoint-plan/*.md or docs/endpoint-plan/*.pdf"
+          exit 1
+        fi
+        echo "✅ Endpoint plan found"
+    
+    - name:  Check SQL Script exists
+      run: |
+        if ! find docs -type f -name "*.sql" | grep -q .; then
+          echo "❌ Error: No SQL script found in docs folder!"
+          echo "Required: docs/sql/*.sql"
+          exit 1
+        fi
+        echo "✅ SQL script found"
+    
+    - name:  Check README exists
+      run: |
+        if [ ! -f "README.md" ]; then
+          echo "❌ Error: README.md not found!"
+          exit 1
+        fi
+        echo "✅ README.md found"
+    
+    - name:  Validate SQL syntax
+      run: |
+        SQL_FILE=$(find docs -type f -name "*.sql" | head -1)
+        if ! grep -q "CREATE TABLE" "$SQL_FILE"; then
+          echo "❌ Error: SQL script missing CREATE TABLE statements!"
+          exit 1
+        fi
+        if ! grep -q "INSERT INTO" "$SQL_FILE"; then
+          echo "❌ Error: SQL script missing seed data (INSERT statements)!"
+          exit 1
+        fi
+        echo "✅ SQL script validation passed"
+    
+    - name: 📊 Count meaningful files
+      run: |
+        echo "📊 Planning Document Summary:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "• ERD found: $(find docs -type f \( -name "*.png" -o -name "*.pdf" \) | wc -l) file(s)"
+        echo "• Endpoint plan: $(find docs -type f \( -name "*.md" -o -name "*.pdf" \) | wc -l) file(s)"
+        echo "• SQL script: $(find docs -type f -name "*.sql" | wc -l) file(s)"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    
+    - name: Final Status
+      run: |
+        echo "✅ All validations passed!"
+        echo "RaceDay Part 1 is ready for submission!"
