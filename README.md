@@ -16,7 +16,7 @@ Creates the full database schema with all tables, constraints, and seed data.
 
 
 # Video Presentation
-Link: [YouTube Video]
+Link: [https://youtu.be/RrkhZZGbrcM]
 What the video covers:
 •	ERD walkthrough - explaining each entity, attributes, and relationships
 •	Endpoint plan explanation - covering all endpoints and role-based access
