@@ -39,7 +39,8 @@ public class EnrolmentsController(RaceDayDbContext db) : ApiControllerBase
             source = source.Where(en => en.ParticipantId == participantId.Value);
         }
 
-        var enrolments = await Project(source).OrderBy(en => en.EventDate).ToListAsync(ct);
+        // Order the entity query before projecting: SQL Server cannot translate an OrderBy applied after this projection.
+        var enrolments = await Project(source.OrderBy(en => en.Event.EventDate)).ToListAsync(ct);
         return Ok(enrolments);
     }
 
@@ -61,8 +62,10 @@ public class EnrolmentsController(RaceDayDbContext db) : ApiControllerBase
 
         if (!await IsOwnerAsync(ev.OrganiserId, ct)) return Forbid403();
 
-        var enrolments = await Project(db.Enrolments.AsNoTracking().Where(en => en.EventId == eventId))
-            .OrderBy(en => en.RegistrationDate)
+        var enrolments = await Project(
+                db.Enrolments.AsNoTracking()
+                    .Where(en => en.EventId == eventId)
+                    .OrderBy(en => en.RegistrationDate))
             .ToListAsync(ct);
 
         return Ok(enrolments);
