@@ -26,6 +26,7 @@ builder.Services.AddDbContext<RaceDayDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb")));
 
 builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
 // Server-side session: the UserId and Role are stored on the server and identified by an HttpOnly cookie.
 builder.Services.AddDistributedMemoryCache();
@@ -45,6 +46,9 @@ app.UseSwagger();
 app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1"));
 
 app.UseHttpsRedirection();
+
+// Serves uploaded banner and profile images from wwwroot/uploads.
+app.UseStaticFiles();
 app.UseSession();
 
 app.MapControllers();

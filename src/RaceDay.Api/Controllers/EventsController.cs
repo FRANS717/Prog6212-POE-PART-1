@@ -4,13 +4,14 @@ using RaceDay.Api.Auth;
 using RaceDay.Api.Contracts;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
 /// <summary>Browsing events is public. Creating, changing and deleting events is limited to the Organiser who owns them.</summary>
 [ApiController]
 [Route("api/events")]
-public class EventsController(RaceDayDbContext db) : ApiControllerBase
+public class EventsController(RaceDayDbContext db, IFileStorage storage) : ApiControllerBase
 {
     /// <summary>Lists events, optionally filtered by type, date, location, or only the logged-in Organiser's own events.</summary>
     /// <param name="type">Run, Walk or Cycle.</param>
@@ -200,6 +201,38 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
     {
         var organiserId = await FindOrganiserIdAsync(db, CurrentUserId, ct);
         return organiserId == ownerOrganiserId;
+    }
+
+    /// <summary>Uploads a banner image for an event and saves its URL on the event. Only the event's Organiser may do this.</summary>
+    /// <remarks>Send a multipart/form-data request with the file in a field named "image". JPG, PNG and WEBP up to 5 MB.</remarks>
+    /// <response code="200">Banner saved. Returns the image URL.</response>
+    /// <response code="400">Missing, too large, or not a valid image file.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Logged in as a Participant, or not the event's organiser.</response>
+    /// <response code="404">No event with this ID.</response>
+    [HttpPost("{eventId:int}/upload-banner")]
+    [RequireSession(Roles.Organiser)]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<ImageUploadResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UploadBanner(int eventId, IFormFile? image, CancellationToken ct)
+    {
+        var existing = await db.Events.FirstOrDefaultAsync(e => e.EventId == eventId, ct);
+        if (existing is null) return NotFound(new ErrorResponse("Event not found."));
+
+        if (!await IsOwnerAsync(existing.OrganiserId, ct)) return Forbid403();
+
+        var error = await ImageValidation.ValidateAsync(image, ct);
+        if (error is not null) return BadRequest(new ErrorResponse(error));
+
+        var imageUrl = await storage.SaveImageAsync(image!, "banners", ct);
+        existing.BannerImageUrl = imageUrl;
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new ImageUploadResponse(imageUrl));
     }
 
     /// <summary>Returns the first validation problem with an event request, or null when it is valid.</summary>

@@ -4,6 +4,7 @@ using RaceDay.Api.Auth;
 using RaceDay.Api.Contracts;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Api.Controllers;
 
@@ -11,7 +12,7 @@ namespace RaceDay.Api.Controllers;
 [ApiController]
 [Route("api/users/profile")]
 [RequireSession]
-public class UsersController(RaceDayDbContext db) : ApiControllerBase
+public class UsersController(RaceDayDbContext db, IFileStorage storage) : ApiControllerBase
 {
     /// <summary>Returns the profile of the logged-in user.</summary>
     /// <response code="200">The user's profile.</response>
@@ -70,6 +71,35 @@ public class UsersController(RaceDayDbContext db) : ApiControllerBase
         await db.SaveChangesAsync(ct);
 
         return Ok(ToProfile(user));
+    }
+
+    /// <summary>Uploads a profile picture for the logged-in Participant. JPG, PNG and WEBP up to 5 MB.</summary>
+    /// <remarks>Send a multipart/form-data request with the file in a field named "image". Organisers do not have a profile picture.</remarks>
+    /// <response code="200">Picture saved. Returns the image URL.</response>
+    /// <response code="400">Missing, too large, or not a valid image file.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Logged in as an Organiser.</response>
+    [HttpPost("picture")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<ImageUploadResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UploadProfilePicture(IFormFile? image, CancellationToken ct)
+    {
+        var user = await LoadCurrentUserAsync(ct);
+        if (user is null) return Unauthorized(new ErrorResponse("You must be logged in to do this."));
+        if (user.Participant is null)
+            return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse("Only participants have a profile picture."));
+
+        var error = await ImageValidation.ValidateAsync(image, ct);
+        if (error is not null) return BadRequest(new ErrorResponse(error));
+
+        var imageUrl = await storage.SaveImageAsync(image!, "profiles", ct);
+        user.Participant.ProfilePictureUrl = imageUrl;
+        await db.SaveChangesAsync(ct);
+
+        return Ok(new ImageUploadResponse(imageUrl));
     }
 
     private Task<User?> LoadCurrentUserAsync(CancellationToken ct) =>
