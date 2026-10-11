@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RaceDay.Api.Auth;
 using RaceDay.Api.Contracts;
 using RaceDay.Api.Data;
 using RaceDay.Api.Models;
@@ -91,6 +92,135 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
     {
         var detail = await FindEventDetailAsync(id, ct);
         return detail is null ? NotFound(new ErrorResponse("Event not found.")) : Ok(detail);
+    }
+
+    /// <summary>Creates an event owned by the logged-in Organiser.</summary>
+    /// <remarks>
+    /// Example body: { "name": "Cape Town Cycle Tour", "description": "...", "date": "2026-03-15T07:00:00",
+    /// "location": "Cape Town, Western Cape", "distance": 109.00, "eventType": "Cycle", "bannerImageUrl": null }
+    /// </remarks>
+    /// <response code="201">Event created. Returns the event with an empty category list.</response>
+    /// <response code="400">Invalid data.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Logged in as a Participant.</response>
+    [HttpPost]
+    [RequireSession(Roles.Organiser)]
+    [ProducesResponseType<EventDetailResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateEvent([FromBody] EventRequest request, CancellationToken ct)
+    {
+        var organiserId = await FindOrganiserIdAsync(db, CurrentUserId, ct);
+        if (organiserId is null) return Forbid403();
+
+        var error = ValidateEvent(request);
+        if (error is not null) return BadRequest(new ErrorResponse(error));
+
+        var newEvent = new Event
+        {
+            OrganiserId = organiserId.Value,
+            CreatedAt = DateTime.Now
+        };
+        ApplyRequest(newEvent, request);
+
+        db.Events.Add(newEvent);
+        await db.SaveChangesAsync(ct);
+
+        var detail = await FindEventDetailAsync(newEvent.EventId, ct);
+        return CreatedAtAction(nameof(GetEvent), new { id = newEvent.EventId }, detail);
+    }
+
+    /// <summary>Updates an event. Only the Organiser who created it may change it.</summary>
+    /// <response code="200">The updated event.</response>
+    /// <response code="400">Invalid data.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Logged in as a Participant, or not the event's organiser.</response>
+    /// <response code="404">No event with this ID.</response>
+    [HttpPut("{id:int}")]
+    [RequireSession(Roles.Organiser)]
+    [ProducesResponseType<EventDetailResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventRequest request, CancellationToken ct)
+    {
+        var existing = await db.Events.FirstOrDefaultAsync(e => e.EventId == id, ct);
+        if (existing is null) return NotFound(new ErrorResponse("Event not found."));
+
+        if (!await IsOwnerAsync(existing.OrganiserId, ct)) return Forbid403();
+
+        var error = ValidateEvent(request);
+        if (error is not null) return BadRequest(new ErrorResponse(error));
+
+        ApplyRequest(existing, request);
+        await db.SaveChangesAsync(ct);
+
+        return Ok(await FindEventDetailAsync(id, ct));
+    }
+
+    /// <summary>
+    /// Deletes an event. Its categories, enrolments and results are removed with it.
+    /// Only the Organiser who created the event may delete it.
+    /// </summary>
+    /// <response code="204">Event deleted.</response>
+    /// <response code="401">Not logged in.</response>
+    /// <response code="403">Logged in as a Participant, or not the event's organiser.</response>
+    /// <response code="404">No event with this ID.</response>
+    [HttpDelete("{id:int}")]
+    [RequireSession(Roles.Organiser)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ErrorResponse>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteEvent(int id, CancellationToken ct)
+    {
+        var existing = await db.Events.FirstOrDefaultAsync(e => e.EventId == id, ct);
+        if (existing is null) return NotFound(new ErrorResponse("Event not found."));
+
+        if (!await IsOwnerAsync(existing.OrganiserId, ct)) return Forbid403();
+
+        // Child rows are removed first because the foreign keys restrict deletes. Everything is saved in one transaction.
+        var results = db.Results.Where(r => r.Enrolment.EventId == id);
+        var enrolments = db.Enrolments.Where(en => en.EventId == id);
+        var categories = db.Categories.Where(c => c.EventId == id);
+
+        db.Results.RemoveRange(results);
+        db.Enrolments.RemoveRange(enrolments);
+        db.Categories.RemoveRange(categories);
+        db.Events.Remove(existing);
+        await db.SaveChangesAsync(ct);
+
+        return NoContent();
+    }
+
+    /// <summary>True when the logged-in user is the Organiser that owns the given organiser profile.</summary>
+    protected async Task<bool> IsOwnerAsync(int ownerOrganiserId, CancellationToken ct)
+    {
+        var organiserId = await FindOrganiserIdAsync(db, CurrentUserId, ct);
+        return organiserId == ownerOrganiserId;
+    }
+
+    /// <summary>Returns the first validation problem with an event request, or null when it is valid.</summary>
+    protected static string? ValidateEvent(EventRequest request) =>
+        Validation.CheckRequiredText(request.Name, "Event name", 100)
+        ?? Validation.CheckRequiredText(request.Description, "Description", 500)
+        ?? Validation.CheckRequiredText(request.Location, "Location", 200)
+        ?? (request.Date == default ? "Event date is required." : null)
+        ?? (request.Distance <= 0 || request.Distance > 999.99m ? "Distance must be greater than 0 and no more than 999.99 km." : null)
+        ?? (EventTypes.All.Contains(request.EventType) ? null : "Event type must be Run, Walk or Cycle.")
+        ?? (request.BannerImageUrl is { Length: > 500 } ? "Banner image URL must be 500 characters or fewer." : null);
+
+    protected static void ApplyRequest(Event target, EventRequest request)
+    {
+        target.Name = request.Name.Trim();
+        target.Description = request.Description.Trim();
+        target.EventDate = request.Date;
+        target.Location = request.Location.Trim();
+        target.Distance = request.Distance;
+        target.EventType = request.EventType;
+        target.BannerImageUrl = string.IsNullOrWhiteSpace(request.BannerImageUrl) ? null : request.BannerImageUrl.Trim();
     }
 
     /// <summary>403 response used when a logged-in user's role is not allowed to perform the action.</summary>
