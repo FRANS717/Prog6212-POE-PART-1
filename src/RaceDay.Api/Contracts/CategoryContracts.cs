@@ -8,3 +8,6 @@ public record CategoryResponse(
     string? Description,
     int? MinAge,
     int? MaxAge);
+
+/// <summary>Body for POST /api/events/{eventId}/categories and PUT /api/categories/{id}. Ages are optional.</summary>
+public record CategoryRequest(string Name, string? Description, int? MinAge, int? MaxAge);
