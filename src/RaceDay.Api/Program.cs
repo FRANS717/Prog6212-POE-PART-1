@@ -6,6 +6,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+// Swagger UI: every endpoint, its roles, request body and responses are documented from attributes and XML comments.
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+    {
+        Title = "RaceDay API",
+        Version = "v1",
+        Description = "RESTful API for RaceDay, a road running, walking and cycling event platform. " +
+                      "Log in with POST /api/auth/login first: the server session cookie is then sent automatically " +
+                      "by Swagger UI, so protected endpoints can be tried straight away."
+    });
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "RaceDay.Api.xml"));
+});
+
 // SQL Server through EF Core. The connection string lives in appsettings.json under ConnectionStrings:RaceDayDb.
 builder.Services.AddDbContext<RaceDayDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb")));
@@ -25,6 +40,9 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", "RaceDay API v1"));
 
 app.UseHttpsRedirection();
 app.UseSession();
