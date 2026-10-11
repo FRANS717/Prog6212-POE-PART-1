@@ -1,0 +1,39 @@
+name: RaceDay - Build and Test API
+
+# Runs on every push (any branch) and on every pull request, so a broken build or failing test shows up immediately.
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build solution and run unit tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore RaceDay.slnx
+
+      - name: Build
+        run: dotnet build RaceDay.slnx --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: >-
+          dotnet test RaceDay.slnx --no-build --configuration Release
+          --logger "trx;LogFileName=test-results.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
