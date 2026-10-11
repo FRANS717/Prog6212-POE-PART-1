@@ -22,8 +22,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // SQL Server through EF Core. The connection string lives in appsettings.json under ConnectionStrings:RaceDayDb.
-builder.Services.AddDbContext<RaceDayDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb")));
+// The test host registers its own in-memory database, so SQL Server is not added in the Testing environment.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<RaceDayDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("RaceDayDb")));
+}
 
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
