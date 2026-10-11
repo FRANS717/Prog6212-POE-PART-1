@@ -223,10 +223,6 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
         target.BannerImageUrl = string.IsNullOrWhiteSpace(request.BannerImageUrl) ? null : request.BannerImageUrl.Trim();
     }
 
-    /// <summary>403 response used when a logged-in user's role is not allowed to perform the action.</summary>
-    protected ObjectResult Forbid403() =>
-        StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse("Your role does not have access to this action."));
-
     /// <summary>Loads an event with its organiser and categories, mapped to the response shape. Returns null if it does not exist.</summary>
     protected async Task<EventDetailResponse?> FindEventDetailAsync(int eventId, CancellationToken ct)
     {

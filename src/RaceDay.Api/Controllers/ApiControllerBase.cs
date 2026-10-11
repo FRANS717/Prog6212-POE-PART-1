@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Auth;
+using RaceDay.Api.Contracts;
 using RaceDay.Api.Data;
 
 namespace RaceDay.Api.Controllers;
@@ -23,6 +24,10 @@ public abstract class ApiControllerBase : ControllerBase
         await HttpContext.Session.LoadAsync(ct);
         return (HttpContext.Session.GetInt32(SessionKeys.UserId), HttpContext.Session.GetString(SessionKeys.Role));
     }
+
+    /// <summary>403 response for a logged-in user whose role is not allowed to perform the action.</summary>
+    protected ObjectResult Forbid403() =>
+        StatusCode(StatusCodes.Status403Forbidden, new ErrorResponse("Your role does not have access to this action."));
 
     /// <summary>Finds the Organiser profile ID that belongs to a user account, or null if there is none.</summary>
     protected static Task<int?> FindOrganiserIdAsync(RaceDayDbContext db, int userId, CancellationToken ct) =>
