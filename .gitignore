@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Files uploaded through the API (banners and profile pictures) during local runs
+src/RaceDay.Api/wwwroot/uploads/
