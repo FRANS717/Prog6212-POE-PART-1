@@ -53,11 +53,14 @@ app.UseSession();
 
 app.MapControllers();
 
-// Apply the Code-First migrations at startup. The test host sets the "Testing" environment and uses an in-memory database instead.
+// Apply the Code-First migrations at startup, then add the sample data if the database is empty.
+// The test host sets the "Testing" environment and uses an in-memory database instead.
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<RaceDayDbContext>().Database.MigrateAsync();
+    var db = scope.ServiceProvider.GetRequiredService<RaceDayDbContext>();
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordService>());
 }
 
 app.Run();
