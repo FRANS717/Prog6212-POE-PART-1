@@ -58,8 +58,9 @@ Prerequisites: .NET 10 SDK, and SQL Server LocalDB (installed with Visual Studio
 
 1. Clone the repository and switch to the Part 2 branch.
    ```bash
-   git clone https://github.com/FRANS717/Prog6212-POE-PART-1.git
-   cd Prog6212-POE-PART-1
+   git clone https://github.com/FRANS717/Prog6212-POE-PART-2.git
+   cd Prog6212-POE-PART-2
+   git checkout part-2
    ```
 2. Restore, build and run the API. The first run creates `RaceDayDB` through the EF Core migrations and adds the sample data.
    ```bash
