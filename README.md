@@ -1,79 +1,62 @@
 # RaceDay - PROG6212 POE
 
-## System Overview
-RaceDay is an event management platform for South African road running, walking, and cycling events. It connects Event Organisers with Participants.
-Organisers can create events, manage categories, view enrolments, and capture results.
-Participants can browse events, enrol, view their enrolments, and track their results.
+[![Build and Test API](https://github.com/FRANS717/Prog6212-POE-PART-2/actions/workflows/dotnet-build-and-test.yml/badge.svg?branch=part-2)](https://github.com/FRANS717/Prog6212-POE-PART-2/actions/workflows/dotnet-build-and-test.yml)
 
-The repository is built in three parts. This README covers **Part 2 (RESTful API)** and keeps the **Part 1 planning documents** below.
+RaceDay is an event management platform for South African road running, walking and cycling events. Organisers create events, categories and results. Participants browse events, enrol by category and track their results.
+
+This branch (`part-2`) is the **RESTful API**. The Part 1 planning documents are in `docs/`. Part 3 (MVC front end, Azure Blob Storage, Docker) comes later.
 
 | Part | Status | Where |
 |------|--------|-------|
-| Part 1 - Planning (ERD, endpoint plan, SQL script) | Submitted | `docs/` and the SQL script in `docs/RaceDay-Schema.sql` |
-| Part 2 - RESTful API (EF Core, sessions, Swagger, unit tests, CI) | This branch | `src/RaceDay.Api`, `tests/RaceDay.Api.Tests` |
+| Part 1 - Planning (ERD, endpoint plan, SQL script) | Done | `docs/` |
+| Part 2 - RESTful API (EF Core, sessions, Swagger, unit tests, CI) | Done on `part-2` | `src/RaceDay.Api`, `tests/RaceDay.Api.Tests` |
 | Part 3 - MVC front end, Azure Blob Storage, Docker | Not started | - |
 
 ## The Two Roles
-- **Organiser** - creates, edits and deletes their own events; manages categories; views all enrolments for their events; confirms or cancels enrolments; captures and corrects finish times and positions. An Organiser registers with an organisation name and contact number.
-- **Participant** - creates an account with a date of birth; browses events (public) and enrols in an event by choosing a category; views their own enrolments and their personal race history; updates their profile and profile picture. A Participant cannot call Organiser endpoints, and an Organiser cannot call Participant endpoints. Both return **403 Forbidden**.
+- **Organiser:** creates, edits and deletes their own events; manages their categories; views every enrolment for their events; sets enrolment status; captures and corrects finish times and positions. Registers with an organisation name and contact number.
+- **Participant:** registers with a date of birth; browses events; enrols in an event by choosing a category; views their own enrolments and race history; updates their profile and picture.
 
-Anyone who is not logged in can browse events and categories. Every other endpoint returns **401 Unauthorized** without a session.
+Anyone can browse events and categories without logging in. Other endpoints return **401** without a session and **403** when the wrong role calls them.
 
-## Part 1 Planning Documents
-1. **ERD** - `docs/ERD.jpg` - shows the seven entities, keys, and cardinality.
-2. **API Endpoint Plan** - `docs/endpoint-plan.pdf` - every endpoint with method, route, description, role, request body and responses.
-3. **SQL Script** - `docs/RaceDay-Schema.sql` - creates `RaceDayDB`, all tables, constraints, and seed data.
+## Prerequisites
+- **.NET 10 SDK** (`dotnet --version` should report 10.x)
+- **SQL Server.** The default connection is SQL Server LocalDB, which comes with Visual Studio. On another machine, point the app at any SQL Server (see below).
+- **Visual Studio 2022 or 2026** (optional). Open `RaceDay.slnx`, set `RaceDay.Api` as the startup project, and press F5.
 
-## Part 2 - RESTful API
-
-### Technology
-- ASP.NET Core Web API on .NET 10 (C#)
-- Entity Framework Core 10, Code-First, SQL Server
-- Server-side session authentication (ASP.NET Core session, HttpOnly cookie)
-- BCrypt password hashing (`BCrypt.Net-Next`)
-- Swashbuckle (Swagger UI)
-- xUnit with `WebApplicationFactory` and the EF Core in-memory provider
-- GitHub Actions for build and test
-
-### Project Structure
-```
-RaceDay.slnx
-src/RaceDay.Api/
-  Controllers/   one controller per area (Auth, Users, Events, Categories, Enrolments, Results)
-  Models/        entities that map to the Part 1 ERD
-  Data/          RaceDayDbContext (schema mapping), DbSeeder, Migrations/
-  Auth/          session keys and the RequireSession attribute (401 / 403 rules)
-  Contracts/     request and response records
-  Services/      password hashing, file storage interface and local implementation, image checks
-tests/RaceDay.Api.Tests/
-  Infrastructure/  test host (in-memory database) and API helpers
-  AuthTests.cs, EventManagementTests.cs, RoleAccessTests.cs, EnrolmentTests.cs, ResultsAndCategoriesTests.cs
-.github/workflows/
-  dotnet-build-and-test.yml   builds the solution and runs the unit tests (Part 2)
-  validate.yml                checks the planning documents in docs/ (Part 1)
+## Setup and Run
+```bash
+git clone https://github.com/FRANS717/Prog6212-POE-PART-2.git
+cd Prog6212-POE-PART-2
+git checkout part-2
+dotnet run --project src/RaceDay.Api
 ```
 
-### Setup and Run
-Prerequisites: .NET 10 SDK, and SQL Server LocalDB (installed with Visual Studio or SQL Server Express).
+Swagger UI opens at **http://localhost:5043/swagger**. The first run creates `RaceDayDB`, applies the EF Core migrations and adds the sample data.
 
-1. Clone the repository and switch to the Part 2 branch.
-   ```bash
-   git clone https://github.com/FRANS717/Prog6212-POE-PART-2.git
-   cd Prog6212-POE-PART-2
-   git checkout part-2
-   ```
-2. Restore, build and run the API. The first run creates `RaceDayDB` through the EF Core migrations and adds the sample data.
-   ```bash
-   dotnet run --project src/RaceDay.Api
-   ```
-3. Open Swagger UI at **http://localhost:5043/swagger** (with the `https` launch profile it is https://localhost:7036/swagger). Log in with `POST /api/auth/login` and then try the protected endpoints. Swagger sends the session cookie for you.
+Log in with `POST /api/auth/login` first. Swagger keeps the session cookie, so the protected endpoints work straight away.
 
-The connection string is `ConnectionStrings:RaceDayDb` in `src/RaceDay.Api/appsettings.json` (LocalDB by default). Change it if you use another SQL Server.
+### Using another machine or SQL Server
+The connection string is `ConnectionStrings:RaceDayDb` in `src/RaceDay.Api/appsettings.json`. Any value there can be overridden with an environment variable, so you don't need to edit the file.
 
-**Using the Part 1 SQL script instead:** running `docs/RaceDay-Schema.sql` in SSMS creates the same database. If you do that, do not run the API against the same database, because its migrations would then try to create tables that already exist. Drop `RaceDayDB` first, or use a new server.
+PowerShell:
+```powershell
+$env:ConnectionStrings__RaceDayDb = "Server=localhost\SQLEXPRESS;Database=RaceDayDB;Trusted_Connection=True;TrustServerCertificate=True;"
+dotnet run --project src/RaceDay.Api
+```
 
-### Seeded Accounts
-The sample data matches the Part 1 SQL script. All seeded accounts use the password **`Password123!`**.
+Bash:
+```bash
+export ConnectionStrings__RaceDayDb="Server=localhost,1433;Database=RaceDayDB;User Id=sa;Password=...;TrustServerCertificate=True;"
+dotnet run --project src/RaceDay.Api
+```
+
+Other things to know on a new machine:
+- **Port in use:** change the port with `--urls http://localhost:5050`. Swagger then moves to that port.
+- **HTTPS profile:** `dotnet run --launch-profile https` needs a trusted dev certificate. Run `dotnet dev-certs https --trust` once.
+- **Using the Part 1 SQL script instead:** running `docs/RaceDay-Schema.sql` in SSMS creates the same database. Don't also run the API against it, because the migrations would try to create tables that already exist. Drop the database first or use a new server.
+
+## Seeded Accounts
+The sample data matches the Part 1 SQL script. Every seeded account uses the password **`Password123!`**.
 
 | Email | Role |
 |-------|------|
@@ -83,14 +66,14 @@ The sample data matches the Part 1 SQL script. All seeded accounts use the passw
 | participant2@raceday.com | Participant |
 | participant3@raceday.com | Participant |
 
-### Running the Unit Tests
+## Running the Unit Tests
 ```bash
 dotnet test RaceDay.slnx
 ```
-The tests run the real API in memory, so they do not need SQL Server. The suite covers registration and login (both roles), session handling, hashed passwords, event management and ownership, role enforcement (403 and 401), enrolments, results, categories, and the Swagger document.
+The tests run the real API against an in-memory database, so they need no SQL Server. They cover registration and login for both roles, sessions, password hashing, event management and ownership, role enforcement (401 and 403), enrolments, results, categories and the Swagger document.
 
-### Endpoints
-Full details, including request bodies and every status code, are in `docs/endpoint-plan.pdf` and in Swagger UI.
+## Endpoints
+Full details are in `docs/endpoint-plan.pdf` and in Swagger UI.
 
 | Method | Route | Role | Purpose |
 |--------|-------|------|---------|
@@ -110,45 +93,46 @@ Full details, including request bodies and every status code, are in `docs/endpo
 | POST | /api/events/{eventId}/categories | Organiser (owner) | Add category |
 | PUT | /api/categories/{id} | Organiser (owner) | Update category |
 | DELETE | /api/categories/{id} | Organiser (owner) | Delete category |
-| GET | /api/enrolments | Logged in | Organiser: all enrolments for their events. Participant: own enrolments |
+| GET | /api/enrolments | Logged in | Organiser: enrolments for their events. Participant: own enrolments |
 | GET | /api/events/{eventId}/enrolments | Organiser (owner) | Enrolments for one event |
 | POST | /api/events/{eventId}/enrol | Participant | Enrol in an event by category |
 | PUT | /api/enrolments/{id}/status | Organiser (owner) | Set Pending, Confirmed or Cancelled |
-| GET | /api/results/me | Participant | Own race history (includes field size) |
+| GET | /api/results/me | Participant | Own race history |
 | GET | /api/events/{eventId}/results | Organiser (owner) | Results for one event |
 | POST | /api/events/{eventId}/results | Organiser (owner) | Capture a finish time and position |
 | PUT | /api/results/{id} | Organiser (owner) | Correct a result |
 
-### Deviations from the Part 1 Plan
-The API follows the approved plan. These differences were needed or added on purpose, and each is listed here as the brief requires:
+## Deviations from the Part 1 Plan
+The API follows the approved plan. These differences were added or needed:
 
-1. **`contactNumber`** is sent on register and on profile update for Organisers. The Organisers table requires it, and the plan's body did not include it.
-2. **`POST /api/users/profile/picture`** was added. The plan had no endpoint for the profile picture that Part 3 needs.
-3. **`GET /api/events?mine=true`** was added so the Organiser dashboard (Part 3) can list only that Organiser's events.
+1. **`contactNumber`** is sent on Organiser register and profile update. The Organisers table requires it, and the plan's body didn't include it.
+2. **`POST /api/users/profile/picture`** was added for the profile picture that Part 3 needs.
+3. **`GET /api/events?mine=true`** was added so the Organiser dashboard can list only that Organiser's events.
 4. **`PUT /api/users/profile`** returns **409** if the new email belongs to another account. The plan listed only 200 and 400.
-5. **`DELETE /api/events/{id}`** also removes the event's categories, enrolments and results, in one transaction. The foreign keys would otherwise block the delete.
-6. **`DELETE /api/categories/{id}`** returns **409** if participants are already enrolled in the category, so their enrolments are not lost. The plan did not list this.
-7. **Enrolment age check:** `POST /api/events/{eventId}/enrol` returns 400 when the participant's age on the event date is outside the category's range. This is the "category invalid" case in the plan.
-8. **Results** include `totalFinishers` so the Participant view can show "47th out of 312".
-9. **Error body:** every error returns `{ "message": "..." }`.
+5. **`DELETE /api/events/{id}`** also removes the event's categories, enrolments and results, in one transaction. Foreign keys would otherwise block the delete.
+6. **`DELETE /api/categories/{id}`** returns **409** if participants are enrolled in it, so their enrolments aren't lost.
+7. **Enrolment age check:** `POST /api/events/{eventId}/enrol` returns 400 when the participant's age on the event date is outside the category's range.
+8. **Results** include `totalFinishers`, so the Participant view can show "47th out of 312".
+9. **Errors** always return `{ "message": "..." }`.
 
-### Design Notes
-- **Schema:** `RaceDayDbContext` maps every table, column name, key, UNIQUE index, CHECK constraint, default, and delete rule to the Part 1 SQL script. The initial migration (`Data/Migrations/`) generates the same tables.
-- **Sessions:** login stores `UserId` and `Role` in the server-side session. The `[RequireSession]` attribute returns 401 when there is no session and 403 when the role is wrong. Ownership checks (for example, editing another Organiser's event) return 403.
-- **Passwords:** stored only as BCrypt hashes with a random salt. The plain text is never saved.
-- **Files:** uploads go through the `IFileStorage` interface. Part 2 saves them under `wwwroot/uploads`. Part 3 will add an Azure Blob implementation without changing the controllers.
+## Design Notes
+- **Schema:** `RaceDayDbContext` maps the tables, keys, unique indexes, check constraints, defaults and delete rules from the Part 1 SQL script. The initial migration in `Data/Migrations/` creates the same tables.
+- **Sessions:** login stores the user ID and role on the server. `[RequireSession]` returns 401 with no session and 403 for the wrong role. Ownership checks return 403.
+- **Passwords:** stored only as BCrypt hashes.
+- **Files:** uploads go through `IFileStorage`. Part 2 saves them under `wwwroot/uploads` (git-ignored). Part 3 adds an Azure Blob implementation without changing the controllers.
 
-### CI/CD
-The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push and pull request. It restores, builds in Release, runs the xUnit suite, and uploads the test results.
+## CI/CD
+- `.github/workflows/dotnet-build-and-test.yml` builds the solution and runs the unit tests on every push and pull request.
+- `.github/workflows/validate.yml` checks that the Part 1 planning documents are in `docs/`.
 
-**CI green build screenshot:** `docs/screenshots/ci-green-build.png` *(add the screenshot of the green run from the Actions tab before submitting)*
+**Green build screenshot:** `docs/screenshots/ci-green-build.png` *(add before submitting)*
 
-### Video Presentation
+## Video Presentation
 - **Part 1 (planning):** https://youtu.be/RrkhZZGbrcM
 - **Part 2 (API, authentication, Swagger, unit tests):** *(add the unlisted YouTube link before submitting)*
 
-### AI Use Disclosure
-AI tools (Claude) helped to plan the structure, write parts of the code and tests, and draft this README. Every change was reviewed and run locally. The design choices and the reasons for them are explained in the video.
+## AI Use Disclosure
+AI tools (Claude) helped plan the structure, write parts of the code and tests, and draft this README. Every change was reviewed and run locally. The design choices are explained in the video.
 
 ## Student Declaration
 I declare that this work is my own original work and all sources have been properly referenced.

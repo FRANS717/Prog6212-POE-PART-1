@@ -21,6 +21,7 @@ public class EventsController(RaceDayDbContext db, IFileStorage storage) : ApiCo
     /// When true, returns only the events of the logged-in Organiser. Added beyond the Part 1 plan so the
     /// Organiser dashboard can list its own events. Requires an Organiser session.
     /// </param>
+    /// <param name="ct">Cancels the request if the caller goes away.</param>
     /// <response code="200">Matching events, earliest first.</response>
     /// <response code="400">Unknown event type.</response>
     /// <response code="401">mine=true but not logged in.</response>
