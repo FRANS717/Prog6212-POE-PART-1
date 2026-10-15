@@ -66,7 +66,7 @@ public class EnrolmentTests(RaceDayWebApplicationFactory factory) : IClassFixtur
         var organiser = await ApiClientHelpers.OrganiserClientAsync(factory);
         var eventId = await ApiClientHelpers.CreateEventAsync(organiser);
         var seniorCategory = await ApiClientHelpers.CreateCategoryAsync(organiser, eventId, "Senior", 20, 39);
-        // Born in 2010, so the participant is 17 on the event date (2027-06-01), which is outside the 20 to 39 range.
+        // Born in 2010, so I am making them 17 on the event date, outside the 20 to 39 range.
         var youngParticipant = await ApiClientHelpers.ParticipantClientAsync(factory, new DateOnly(2010, 1, 1));
 
         var response = await youngParticipant.PostAsJsonAsync($"/api/events/{eventId}/enrol", new EnrolRequest(seniorCategory));

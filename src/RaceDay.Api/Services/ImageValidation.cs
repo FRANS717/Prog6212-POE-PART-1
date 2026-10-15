@@ -28,13 +28,14 @@ public static class ImageValidation
 
     private static bool IsKnownImageHeader(ReadOnlySpan<byte> header)
     {
+        // I check the bytes, not just the extension, so a renamed text file gets rejected.
         // JPEG starts with FF D8 FF.
         if (header.Length >= 3 && header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF) return true;
 
         // PNG starts with 89 50 4E 47.
         if (header.Length >= 4 && header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return true;
 
-        // WEBP is "RIFF" + 4 size bytes + "WEBP".
+        // WEBP starts with RIFF and has WEBP at byte 8.
         return header.Length >= 12
             && header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F'
             && header[8] == 'W' && header[9] == 'E' && header[10] == 'B' && header[11] == 'P';

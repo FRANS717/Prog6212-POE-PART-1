@@ -20,7 +20,7 @@ public static class DbSeeder
         var hash = passwords.HashPassword(SeedPassword);
         var now = DateTime.Now;
 
-        // Accounts and profiles. The Organisers and Participants lists are created in the same order as the SQL script's identity values.
+        // Accounts and profiles, created in the same order as the SQL script's IDs.
         var organiser1 = new User { Email = "organiser1@raceday.com", FullName = "John Organiser", Role = Roles.Organiser, PasswordHash = hash, CreatedAt = now };
         var organiser2 = new User { Email = "organiser2@raceday.com", FullName = "Sarah Events", Role = Roles.Organiser, PasswordHash = hash, CreatedAt = now };
         var participant1 = new User { Email = "participant1@raceday.com", FullName = "Tom Runner", Role = Roles.Participant, PasswordHash = hash, CreatedAt = now };
@@ -35,7 +35,7 @@ public static class DbSeeder
 
         db.Users.AddRange(organiser1, organiser2, participant1, participant2, participant3);
 
-        // Events, each with its categories.
+        // Three events, each with its own categories.
         var cycleTour = new Event
         {
             Organiser = organiser1.Organiser!,
@@ -86,7 +86,7 @@ public static class DbSeeder
             runUnder20, runSenior, runVeteran,
             walkUnder20, walkSenior, walkVeteran);
 
-        // Enrolments, in the same order as the SQL script (EnrolmentID 1 to 6).
+        // Enrolments in the same order as the SQL script, so IDs 1 to 6 match.
         var enrolments = new[]
         {
             Enrol(participant1.Participant!, cycleTour, cycleSenior, EnrolmentStatuses.Confirmed, now),
@@ -98,7 +98,7 @@ public static class DbSeeder
         };
         db.Enrolments.AddRange(enrolments);
 
-        // Results for enrolments 1, 3, 4 and 6, as in the SQL script.
+        // Results for enrolments 1, 3, 4 and 6, same as the SQL script.
         db.Results.AddRange(
             new Result { Enrolment = enrolments[0], FinishTime = new TimeSpan(3, 45, 30), FinishPosition = 47, Status = ResultStatuses.Published },
             new Result { Enrolment = enrolments[2], FinishTime = new TimeSpan(4, 12, 15), FinishPosition = 78, Status = ResultStatuses.Published },

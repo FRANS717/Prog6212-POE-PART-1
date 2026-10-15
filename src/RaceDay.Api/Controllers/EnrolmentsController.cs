@@ -39,7 +39,7 @@ public class EnrolmentsController(RaceDayDbContext db) : ApiControllerBase
             source = source.Where(en => en.ParticipantId == participantId.Value);
         }
 
-        // Order the entity query before projecting: SQL Server cannot translate an OrderBy applied after this projection.
+        // I order before projecting, because SQL Server can't translate an OrderBy that comes after the Select.
         var enrolments = await Project(source.OrderBy(en => en.Event.EventDate)).ToListAsync(ct);
         return Ok(enrolments);
     }

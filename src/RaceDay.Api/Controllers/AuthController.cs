@@ -90,11 +90,11 @@ public class AuthController(RaceDayDbContext db, IPasswordService passwords) : A
         var email = request.Email.Trim().ToLowerInvariant();
         var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
 
-        // The same message is returned for an unknown email and a wrong password, so the API does not reveal which emails exist.
+        // Same message for a wrong email and a wrong password, so nobody can use this to find out which emails exist.
         if (user is null || !passwords.VerifyPassword(request.Password, user.PasswordHash))
             return Unauthorized(new ErrorResponse("Invalid email or password."));
 
-        // Clear any old session first, then store the identity the protected endpoints will use.
+        // I clear any old session first, then store the user ID and role the protected endpoints check.
         HttpContext.Session.Clear();
         HttpContext.Session.SetInt32(SessionKeys.UserId, user.UserId);
         HttpContext.Session.SetString(SessionKeys.Role, user.Role);

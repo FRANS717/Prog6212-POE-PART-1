@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Swagger UI: every endpoint, its roles, request body and responses are documented from attributes and XML comments.
+// Swagger builds its docs from the attributes and XML comments on each endpoint.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -21,8 +21,8 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "RaceDay.Api.xml"));
 });
 
-// SQL Server through EF Core. The connection string lives in appsettings.json under ConnectionStrings:RaceDayDb.
-// The test host registers its own in-memory database, so SQL Server is not added in the Testing environment.
+// The connection string is in appsettings.json under ConnectionStrings:RaceDayDb.
+// Tests bring their own in-memory database, so I skip SQL Server when the environment is Testing.
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddDbContext<RaceDayDbContext>(options =>
@@ -32,7 +32,7 @@ if (!builder.Environment.IsEnvironment("Testing"))
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddSingleton<IFileStorage, LocalFileStorage>();
 
-// Server-side session: the UserId and Role are stored on the server and identified by an HttpOnly cookie.
+// The session lives on the server. The browser only keeps an HttpOnly cookie that points to it.
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -51,14 +51,14 @@ app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v1/swagger.json", 
 
 app.UseHttpsRedirection();
 
-// Serves uploaded banner and profile images from wwwroot/uploads.
+// Serves the uploaded banners and profile pictures from wwwroot/uploads.
 app.UseStaticFiles();
 app.UseSession();
 
 app.MapControllers();
 
-// Apply the Code-First migrations at startup, then add the sample data if the database is empty.
-// The test host sets the "Testing" environment and uses an in-memory database instead.
+// On startup I apply the migrations, then seed the sample data if the database is empty.
+// Tests run in the Testing environment, so this block is skipped for them.
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
@@ -69,5 +69,5 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 app.Run();
 
-// Makes the entry point visible to WebApplicationFactory in the test project.
+// Lets WebApplicationFactory reach this entry point from the test project.
 public partial class Program;

@@ -182,7 +182,7 @@ public class EventsController(RaceDayDbContext db, IFileStorage storage) : ApiCo
 
         if (!await IsOwnerAsync(existing.OrganiserId, ct)) return Forbid403();
 
-        // Child rows are removed first because the foreign keys restrict deletes. Everything is saved in one transaction.
+        // Child rows go first, because the foreign keys block deleting the event while they exist. One save does it all.
         var results = db.Results.Where(r => r.Enrolment.EventId == id);
         var enrolments = db.Enrolments.Where(en => en.EventId == id);
         var categories = db.Categories.Where(c => c.EventId == id);
