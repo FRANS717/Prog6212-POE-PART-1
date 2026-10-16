@@ -144,7 +144,7 @@ The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push an
 
 ### Video Presentation
 - **Part 1 (planning):** https://youtu.be/RrkhZZGbrcM
-- **Part 2 (API, authentication, Swagger, unit tests):** *()*
+- **Part 2 (API, authentication, Swagger, unit tests):** *https://youtu.be/aCJvocN834Y?si=DcZ1JwumTEYKDjo4*
 
 ### AI Use Disclosure
 AI tools (Claude) helped to plan the structure, write parts of the code and tests, and draft this README. Every change was reviewed and run locally. The design choices and the reasons for them are explained in the video.
