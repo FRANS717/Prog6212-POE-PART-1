@@ -125,7 +125,9 @@ The API follows the approved plan. These differences were added or needed:
 - `.github/workflows/dotnet-build-and-test.yml` builds the solution and runs the unit tests on every push and pull request.
 - `.github/workflows/validate.yml` checks that the Part 1 planning documents are in `docs/`.
 
-**Green build screenshot:** `docs/screenshots/ci-green-build.png` *(add before submitting)*
+**Green build:** the successful run on `part-2` is shown below, and the run itself is at https://github.com/FRANS717/Prog6212-POE-PART-2/actions/runs/38826787930
+
+![Green CI build](docs/screenshots/ci-green-build.png)
 
 ## Video Presentation
 - **Part 1 (planning):** https://youtu.be/RrkhZZGbrcM
