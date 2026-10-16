@@ -29,7 +29,7 @@ public class EventManagementTests(RaceDayWebApplicationFactory factory) : IClass
     public async Task Organiser_UpdatesOwnEvent_Returns200()
     {
         var organiser = await ApiClientHelpers.OrganiserClientAsync(factory);
-        var eventId = await ApiClientHelpers.CreateEventAsync(organiser, EventTypes.Run, "Original Name");
+        var eventId = await ApiClientHelpers.CreateEventAsync(organiser, EventTypes.Run, "Jarred Original Run");
 
         var response = await organiser.PutAsJsonAsync($"/api/events/{eventId}", ApiClientHelpers.NewEventRequest("Renamed Run", EventTypes.Cycle));
 

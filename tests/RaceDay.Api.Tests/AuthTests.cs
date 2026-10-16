@@ -26,7 +26,7 @@ public class AuthTests(RaceDayWebApplicationFactory factory) : IClassFixture<Rac
         Assert.NotEqual(ApiClientHelpers.Password, stored.PasswordHash);
         Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(ApiClientHelpers.Password, stored.PasswordHash));
         Assert.NotNull(stored.Organiser);
-        Assert.Equal("Test Events", stored.Organiser!.OrganisationName);
+        Assert.Equal("Jarred Events", stored.Organiser!.OrganisationName);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class AuthTests(RaceDayWebApplicationFactory factory) : IClassFixture<Rac
     public async Task Register_WithUnknownRole_Returns400()
     {
         var response = await factory.CreateClient().PostAsJsonAsync("/api/auth/register", new RegisterRequest(
-            ApiClientHelpers.UniqueEmail("admin"), ApiClientHelpers.Password, "Ada Admin", "Administrator", null, null, null));
+            ApiClientHelpers.UniqueEmail("admin"), ApiClientHelpers.Password, "Jarred Admin", "Administrator", null, null, null));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -68,7 +68,7 @@ public class AuthTests(RaceDayWebApplicationFactory factory) : IClassFixture<Rac
     public async Task Register_ParticipantWithoutDateOfBirth_Returns400()
     {
         var response = await factory.CreateClient().PostAsJsonAsync("/api/auth/register", new RegisterRequest(
-            ApiClientHelpers.UniqueEmail("no-dob"), ApiClientHelpers.Password, "Nia Nodob", Roles.Participant, null, null, null));
+            ApiClientHelpers.UniqueEmail("no-dob"), ApiClientHelpers.Password, "Jarred Nodob", Roles.Participant, null, null, null));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = await ApiClientHelpers.ReadErrorAsync(response);
@@ -133,7 +133,7 @@ public class AuthTests(RaceDayWebApplicationFactory factory) : IClassFixture<Rac
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var profile = await ApiClientHelpers.ReadAsync<UserProfileResponse>(response);
         Assert.Equal(Roles.Organiser, profile!.Role);
-        Assert.Equal("Test Events", profile.OrganisationName);
+        Assert.Equal("Jarred Events", profile.OrganisationName);
     }
 
     [Fact]

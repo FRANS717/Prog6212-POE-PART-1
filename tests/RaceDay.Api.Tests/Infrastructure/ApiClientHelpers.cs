@@ -14,17 +14,17 @@ public static class ApiClientHelpers
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     /// <summary>A unique email address, so tests never clash on the email UNIQUE rule.</summary>
-    public static string UniqueEmail(string prefix) => $"{prefix}.{Guid.NewGuid():N}@test.raceday";
+    public static string UniqueEmail(string prefix) => $"jarred.{prefix}.{Guid.NewGuid():N}@test.raceday";
 
     /// <summary>Registers an Organiser through the API and returns the response.</summary>
-    public static Task<HttpResponseMessage> RegisterOrganiserRequestAsync(HttpClient client, string email, string organisationName = "Test Events") =>
+    public static Task<HttpResponseMessage> RegisterOrganiserRequestAsync(HttpClient client, string email, string organisationName = "Jarred Events") =>
         client.PostAsJsonAsync("/api/auth/register", new RegisterRequest(
-            email, Password, "Olivia Organiser", Roles.Organiser, organisationName, "+27 11 000 0000", null));
+            email, Password, "Jarred Organiser", Roles.Organiser, organisationName, "+27 11 000 0000", null));
 
     /// <summary>Registers a Participant through the API and returns the response.</summary>
     public static Task<HttpResponseMessage> RegisterParticipantRequestAsync(HttpClient client, string email, DateOnly? dateOfBirth = null) =>
         client.PostAsJsonAsync("/api/auth/register", new RegisterRequest(
-            email, Password, "Pat Participant", Roles.Participant, null, null, dateOfBirth ?? new DateOnly(1995, 1, 1)));
+            email, Password, "Jarred Participant", Roles.Participant, null, null, dateOfBirth ?? new DateOnly(1995, 1, 1)));
 
     /// <summary>Creates an Organiser account and logs the client in as that Organiser.</summary>
     public static async Task<HttpClient> OrganiserClientAsync(RaceDayWebApplicationFactory factory)
@@ -56,7 +56,7 @@ public static class ApiClientHelpers
     }
 
     /// <summary>Creates an event through the API as the logged-in Organiser and returns its ID.</summary>
-    public static async Task<int> CreateEventAsync(HttpClient organiserClient, string eventType = EventTypes.Run, string name = "Test Run")
+    public static async Task<int> CreateEventAsync(HttpClient organiserClient, string eventType = EventTypes.Run, string name = "Jarred Run")
     {
         var response = await organiserClient.PostAsJsonAsync("/api/events", NewEventRequest(name, eventType));
         response.EnsureSuccessStatusCode();
@@ -69,13 +69,13 @@ public static class ApiClientHelpers
     {
         var response = await organiserClient.PostAsJsonAsync(
             $"/api/events/{eventId}/categories",
-            new CategoryRequest(name, "Test category", minAge, maxAge));
+            new CategoryRequest(name, "Jarred's category", minAge, maxAge));
         response.EnsureSuccessStatusCode();
         var category = await ReadAsync<CategoryResponse>(response);
         return category!.CategoryId;
     }
 
-    public static EventRequest NewEventRequest(string name = "Test Run", string eventType = EventTypes.Run) =>
+    public static EventRequest NewEventRequest(string name = "Jarred Run", string eventType = EventTypes.Run) =>
         new(
             name,
             "An event created by the automated tests",
