@@ -140,7 +140,7 @@ The API follows the approved plan. These differences were needed or added on pur
 ### CI/CD
 The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push and pull request. It restores, builds in Release, runs the xUnit suite, and uploads the test results.
 
-**CI green build screenshot:** `docs/screenshots/ci-green-build.png` *(add the screenshot of the green run from the Actions tab before submitting)*
+**CI green build screenshot:** `docs/screenshots/ci-green-build.png` 
 
 ### Video Presentation
 - **Part 1 (planning):** https://youtu.be/RrkhZZGbrcM
