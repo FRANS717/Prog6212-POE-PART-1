@@ -1,17 +1,5 @@
 # RaceDay - PROG6212 POE
 
- Part 1 — ERD
-
- Part 1 — API Endpoint Plan
-
- Part 1 — SQL Script
-
- CI Green Build Screenshot
-
- Part 1 — Planning Presentation
-
- Part 2 — API, Authentication, Swagger and Unit Tests
-
 ## System Overview
 RaceDay is an event management platform for South African road running, walking, and cycling events. It connects Event Organisers with Participants.
 Organisers can create events, manage categories, view enrolments, and capture results.
@@ -150,6 +138,9 @@ The API follows the approved plan. These differences were needed or added on pur
 - **Files:** uploads go through the `IFileStorage` interface. Part 2 saves them under `wwwroot/uploads`. Part 3 will add an Azure Blob implementation without changing the controllers.
 
 ### CI/CD
+
+[![Planning document check](https://github.com/YOUR-USERNAME/YOUR-REPOSITORY/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/FRANS717/Prog6212-POE-PART-2.git/actions/workflows/validate.yml)
+
 The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push and pull request. It restores, builds in Release, runs the xUnit suite, and uploads the test results.
 
 **CI green build screenshot:** `docs/screenshots/ci-green-build.png` 
