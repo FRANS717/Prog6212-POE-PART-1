@@ -1,5 +1,17 @@
 # RaceDay - PROG6212 POE
 
+ Part 1 — ERD
+
+ Part 1 — API Endpoint Plan
+
+ Part 1 — SQL Script
+
+ CI Green Build Screenshot
+
+ Part 1 — Planning Presentation
+
+ Part 2 — API, Authentication, Swagger and Unit Tests
+
 ## System Overview
 RaceDay is an event management platform for South African road running, walking, and cycling events. It connects Event Organisers with Participants.
 Organisers can create events, manage categories, view enrolments, and capture results.
