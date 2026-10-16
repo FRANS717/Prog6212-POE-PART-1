@@ -58,7 +58,7 @@ Prerequisites: .NET 10 SDK, and SQL Server LocalDB (installed with Visual Studio
 
 1. Clone the repository and switch to the Part 2 branch.
    ```bash
-   git clone https://github.com/FRANS717/Prog6212-POE-PART-1.git
+   git clone https://github.com/FRANS717/Prog6212-POE-PART-2.git
    cd Prog6212-POE-PART-1
    ```
 2. Restore, build and run the API. The first run creates `RaceDayDB` through the EF Core migrations and adds the sample data.
@@ -144,7 +144,7 @@ The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push an
 
 ### Video Presentation
 - **Part 1 (planning):** https://youtu.be/RrkhZZGbrcM
-- **Part 2 (API, authentication, Swagger, unit tests):** *(add the unlisted YouTube link before submitting)*
+- **Part 2 (API, authentication, Swagger, unit tests):** *()*
 
 ### AI Use Disclosure
 AI tools (Claude) helped to plan the structure, write parts of the code and tests, and draft this README. Every change was reviewed and run locally. The design choices and the reasons for them are explained in the video.
