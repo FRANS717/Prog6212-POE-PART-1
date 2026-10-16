@@ -139,7 +139,7 @@ The API follows the approved plan. These differences were needed or added on pur
 
 ### CI/CD
 
-[![Planning document check](https://github.com/YOUR-USERNAME/YOUR-REPOSITORY/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/FRANS717/Prog6212-POE-PART-2.git/actions/workflows/validate.yml)
+[![Planning document check](https://github.com/FRANS717/Prog6212-POE-PART-2.git/actions/workflows/validate.yml/badge.svg?branch=main)])
 
 The workflow `.github/workflows/dotnet-build-and-test.yml` runs on every push and pull request. It restores, builds in Release, runs the xUnit suite, and uploads the test results.
 
